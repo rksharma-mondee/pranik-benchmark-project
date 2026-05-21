@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tier 3 Arbitration",
+  "type": "object",
+  "required": ["item_id", "arbiter_id", "final_label"],
+  "properties": {
+    "item_id": { "type": "string" },
+    "arbiter_id": { "type": "string" },
+    "final_label": { "type": "object" },
+    "rationale": { "type": "string" }
+  }
+}
+

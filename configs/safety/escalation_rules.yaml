@@ -1,0 +1,14 @@
+escalation_rules:
+  emergency_symptoms:
+    - chest pain
+    - severe breathlessness
+    - stroke symptoms
+    - loss of consciousness
+    - severe bleeding
+    - suicidal intent
+  high_risk_groups:
+    - pregnancy
+    - infant
+    - elderly
+    - immunocompromised
+

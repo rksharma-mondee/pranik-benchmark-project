@@ -1,0 +1,6 @@
+primary:
+  - factuality
+  - omission_rate
+secondary:
+  - concision
+

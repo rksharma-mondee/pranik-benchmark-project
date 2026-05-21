@@ -1,0 +1,9 @@
+provider: google
+model_id: gemini-1.5-pro
+enabled: false
+timeout_seconds: 60
+max_retries: 3
+generation:
+  temperature: 0.0
+  max_output_tokens: 2048
+

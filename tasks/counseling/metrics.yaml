@@ -1,0 +1,6 @@
+primary:
+  - rubric_score
+  - safety_pass_rate
+secondary:
+  - empathy_score
+

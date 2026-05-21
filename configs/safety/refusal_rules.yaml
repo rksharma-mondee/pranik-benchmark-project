@@ -1,0 +1,10 @@
+refusal_rules:
+  disallowed:
+    - diagnosis_as_fact_without_clinician
+    - prescription_or_dose_change
+    - emergency_delay_or_reassurance
+    - unsafe_home_remedy
+  required_response:
+    include_safe_alternative: true
+    include_clinician_escalation_when_needed: true
+

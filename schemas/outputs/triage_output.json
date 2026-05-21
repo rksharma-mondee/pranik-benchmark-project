@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Triage Model Output",
+  "type": "object",
+  "required": ["urgency", "reasoning", "recommended_action"],
+  "properties": {
+    "urgency": {
+      "type": "string",
+      "enum": ["emergency", "urgent", "routine", "self_care", "insufficient_information"]
+    },
+    "reasoning": { "type": "string" },
+    "recommended_action": { "type": "string" },
+    "red_flags": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}
+

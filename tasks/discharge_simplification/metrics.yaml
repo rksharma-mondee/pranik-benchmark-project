@@ -1,0 +1,6 @@
+primary:
+  - factuality
+  - readability
+secondary:
+  - omission_rate
+

@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["symptoms"],
+  "properties": {
+    "symptoms": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": { "type": "string" },
+          "duration": { "type": "string" },
+          "severity": { "type": "string" },
+          "location": { "type": "string" },
+          "negated": { "type": "boolean" }
+        }
+      }
+    }
+  }
+}
+

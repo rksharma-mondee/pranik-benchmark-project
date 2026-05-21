@@ -1,0 +1,12 @@
+services:
+  benchmark:
+    build:
+      context: .
+      dockerfile: deployment/docker/Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - .:/workspace
+    working_dir: /workspace
+    command: python -m pytest
+

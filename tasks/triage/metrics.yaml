@@ -1,0 +1,7 @@
+primary:
+  - macro_f1
+  - critical_miss_rate
+secondary:
+  - accuracy
+  - escalation_recall
+

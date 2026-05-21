@@ -1,0 +1,693 @@
+{
+  "$defs": {
+    "AnnotationMetadata": {
+      "additionalProperties": false,
+      "description": "Annotation workflow metadata.\n\nAttributes:\n    annotator_tier: Annotation tier from 1 to 3.\n    iaa_score: Inter-annotator agreement score when available.\n    validation_status: Draft, reviewed, or approved status.\n    clinical_reviewer_required: Whether clinician review is required.\n    reviewer_notes: Human reviewer notes.",
+      "properties": {
+        "annotator_tier": {
+          "description": "Annotation tier from 1 to 3.",
+          "maximum": 3,
+          "minimum": 1,
+          "title": "Annotator Tier",
+          "type": "integer"
+        },
+        "iaa_score": {
+          "anyOf": [
+            {
+              "maximum": 1.0,
+              "minimum": 0.0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Inter-annotator agreement score when available.",
+          "title": "Iaa Score"
+        },
+        "validation_status": {
+          "$ref": "#/$defs/ValidationStatus",
+          "description": "Annotation lifecycle status."
+        },
+        "clinical_reviewer_required": {
+          "default": true,
+          "description": "Whether clinical reviewer sign-off is required.",
+          "title": "Clinical Reviewer Required",
+          "type": "boolean"
+        },
+        "reviewer_notes": {
+          "description": "Reviewer notes and data-quality caveats.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Reviewer Notes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "annotator_tier",
+        "validation_status"
+      ],
+      "title": "AnnotationMetadata",
+      "type": "object"
+    },
+    "BenchmarkInput": {
+      "additionalProperties": true,
+      "description": "Input payload for annotation-ready benchmark cases.",
+      "properties": {
+        "patient_query": {
+          "description": "Original user or provider text.",
+          "minLength": 1,
+          "title": "Patient Query",
+          "type": "string"
+        },
+        "context_type": {
+          "$ref": "#/$defs/ContextType",
+          "description": "Query context source."
+        },
+        "literacy_level": {
+          "$ref": "#/$defs/LiteracyLevel",
+          "description": "Approximate health literacy level."
+        },
+        "patient_age": {
+          "anyOf": [
+            {
+              "maximum": 125,
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Patient age.",
+          "title": "Patient Age"
+        },
+        "sex_or_context": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Sex, pregnancy context, family relation, or other relevant context.",
+          "title": "Sex Or Context"
+        },
+        "duration": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Symptom duration if stated.",
+          "title": "Duration"
+        }
+      },
+      "required": [
+        "patient_query",
+        "context_type",
+        "literacy_level"
+      ],
+      "title": "BenchmarkInput",
+      "type": "object"
+    },
+    "CodeMixMetadata": {
+      "additionalProperties": false,
+      "description": "Language and code-mix metadata for a benchmark case.\n\nAttributes:\n    primary_language: Main language label for the case.\n    secondary_languages: Other languages present in the query.\n    code_mix_percent: Estimated percentage of non-primary-language content.\n    script_notes: Notes about script, transliteration, or dialect.",
+      "properties": {
+        "primary_language": {
+          "$ref": "#/$defs/LanguageCode",
+          "description": "Primary benchmark language label."
+        },
+        "secondary_languages": {
+          "description": "Additional languages present in the case.",
+          "items": {
+            "$ref": "#/$defs/LanguageCode"
+          },
+          "title": "Secondary Languages",
+          "type": "array"
+        },
+        "code_mix_percent": {
+          "description": "Estimated percentage of code-mixed content.",
+          "maximum": 100.0,
+          "minimum": 0.0,
+          "title": "Code Mix Percent",
+          "type": "number"
+        },
+        "script_notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Notes about native script, romanization, or mixed-script content.",
+          "title": "Script Notes"
+        }
+      },
+      "required": [
+        "primary_language",
+        "code_mix_percent"
+      ],
+      "title": "CodeMixMetadata",
+      "type": "object"
+    },
+    "ContextType": {
+      "description": "Who generated or reported the medical query.",
+      "enum": [
+        "patient_reported",
+        "family_reported",
+        "provider_generated"
+      ],
+      "title": "ContextType",
+      "type": "string"
+    },
+    "EscalationGoldLabel": {
+      "additionalProperties": false,
+      "description": "Gold label for escalation detection cases.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "const": "escalation",
+          "default": "escalation",
+          "description": "Gold-label type.",
+          "title": "Label Type",
+          "type": "string"
+        },
+        "should_escalate": {
+          "description": "Whether escalation is required.",
+          "title": "Should Escalate",
+          "type": "boolean"
+        },
+        "escalation_level": {
+          "$ref": "#/$defs/EscalationLevel",
+          "description": "Required escalation level."
+        },
+        "trigger_category": {
+          "$ref": "#/$defs/TriggerCategory",
+          "description": "Dominant escalation trigger."
+        },
+        "matched_triggers": {
+          "description": "Explicit trigger phrases or clinical concepts present in the input.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Matched Triggers",
+          "type": "array"
+        },
+        "false_negative_risk": {
+          "$ref": "#/$defs/FalseNegativeRisk",
+          "description": "Clinical risk if the model fails to escalate."
+        },
+        "failure_modes": {
+          "description": "Failure modes this case is intended to detect.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Failure Modes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "reasoning",
+        "should_escalate",
+        "escalation_level",
+        "trigger_category",
+        "false_negative_risk"
+      ],
+      "title": "EscalationGoldLabel",
+      "type": "object"
+    },
+    "EscalationLevel": {
+      "description": "Escalation levels used for safety routing evaluation.",
+      "enum": [
+        "NONE",
+        "CLINICIAN",
+        "URGENT",
+        "EMERGENCY",
+        "CRISIS"
+      ],
+      "title": "EscalationLevel",
+      "type": "string"
+    },
+    "FalseNegativeRisk": {
+      "description": "Risk severity if the model fails to escalate the case.",
+      "enum": [
+        "LOW",
+        "MEDIUM",
+        "HIGH",
+        "FATAL"
+      ],
+      "title": "FalseNegativeRisk",
+      "type": "string"
+    },
+    "LanguageCode": {
+      "description": "Supported benchmark language labels.",
+      "enum": [
+        "hi",
+        "te",
+        "kn",
+        "bn",
+        "en-IN",
+        "mix"
+      ],
+      "title": "LanguageCode",
+      "type": "string"
+    },
+    "LiteracyLevel": {
+      "description": "Approximate health literacy level used for case stratification.",
+      "enum": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "title": "LiteracyLevel",
+      "type": "string"
+    },
+    "RefusalGoldLabel": {
+      "additionalProperties": false,
+      "description": "Gold label for refusal-behavior safety cases.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "const": "refusal",
+          "default": "refusal",
+          "description": "Gold-label type.",
+          "title": "Label Type",
+          "type": "string"
+        },
+        "should_refuse": {
+          "description": "Whether the model should refuse the request.",
+          "title": "Should Refuse",
+          "type": "boolean"
+        },
+        "refusal_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Reason refusal is required.",
+          "title": "Refusal Reason"
+        },
+        "safe_alternative": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Safe alternative information the model may provide.",
+          "title": "Safe Alternative"
+        },
+        "unsafe_content_categories": {
+          "description": "Unsafe request categories present in the case.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Unsafe Content Categories",
+          "type": "array"
+        }
+      },
+      "required": [
+        "reasoning",
+        "should_refuse"
+      ],
+      "title": "RefusalGoldLabel",
+      "type": "object"
+    },
+    "TriageGoldLabel": {
+      "additionalProperties": false,
+      "description": "Gold label for triage evaluation cases.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "const": "triage",
+          "default": "triage",
+          "description": "Gold-label type.",
+          "title": "Label Type",
+          "type": "string"
+        },
+        "urgency": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/TriageSeverity"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Exact triage class, or null only when the case is adjudicated ambiguous."
+        },
+        "action": {
+          "description": "Exact recommended patient action.",
+          "title": "Action",
+          "type": "string"
+        },
+        "detected_red_flags": {
+          "description": "Explicit red flags present in the user input.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Detected Red Flags",
+          "type": "array"
+        },
+        "escalation_required": {
+          "description": "Whether escalation is required.",
+          "title": "Escalation Required",
+          "type": "boolean"
+        },
+        "escalation_reasoning": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Rationale for escalation decision.",
+          "title": "Escalation Reasoning"
+        },
+        "is_ambiguous": {
+          "default": false,
+          "description": "True only when a safe final class cannot be assigned from the input.",
+          "title": "Is Ambiguous",
+          "type": "boolean"
+        },
+        "ambiguity_reason": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Why the case is ambiguous, required when is_ambiguous is true.",
+          "title": "Ambiguity Reason"
+        },
+        "arbitration_rule": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How the label should be resolved during adjudication.",
+          "title": "Arbitration Rule"
+        },
+        "failure_modes": {
+          "description": "Failure modes this case is intended to detect.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Failure Modes",
+          "type": "array"
+        }
+      },
+      "required": [
+        "reasoning",
+        "urgency",
+        "action",
+        "escalation_required"
+      ],
+      "title": "TriageGoldLabel",
+      "type": "object"
+    },
+    "TriageSeverity": {
+      "description": "Exact triage severity labels used by the benchmark.",
+      "enum": [
+        "EMERGENCY",
+        "URGENT",
+        "ROUTINE",
+        "SELF_CARE"
+      ],
+      "title": "TriageSeverity",
+      "type": "string"
+    },
+    "TriggerCategory": {
+      "description": "Dominant escalation trigger category for audit and scoring.",
+      "enum": [
+        "none",
+        "neurologic_emergency",
+        "pregnancy_emergency",
+        "cardiac_red_flags",
+        "poisoning_or_overdose",
+        "mental_health_crisis",
+        "severe_infection",
+        "medication_risk",
+        "other_red_flag"
+      ],
+      "title": "TriggerCategory",
+      "type": "string"
+    },
+    "ValidationStatus": {
+      "description": "Lifecycle status for a benchmark case.",
+      "enum": [
+        "draft",
+        "reviewed",
+        "approved"
+      ],
+      "title": "ValidationStatus",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Unified benchmark case model for JSONL files and evaluation pipelines.",
+  "properties": {
+    "case_id": {
+      "description": "Stable unique case identifier.",
+      "title": "Case Id",
+      "type": "string"
+    },
+    "task": {
+      "description": "Benchmark task name.",
+      "enum": [
+        "triage",
+        "escalation",
+        "refusal_behavior",
+        "symptom_extraction",
+        "medication_explanation",
+        "discharge_simplification",
+        "counseling",
+        "preventive_care",
+        "doctor_note_summary"
+      ],
+      "title": "Task",
+      "type": "string"
+    },
+    "language": {
+      "$ref": "#/$defs/LanguageCode",
+      "description": "Primary language label."
+    },
+    "input": {
+      "$ref": "#/$defs/BenchmarkInput",
+      "description": "Task input payload."
+    },
+    "gold_label": {
+      "description": "Task-specific gold label.",
+      "discriminator": {
+        "mapping": {
+          "escalation": "#/$defs/EscalationGoldLabel",
+          "refusal": "#/$defs/RefusalGoldLabel",
+          "triage": "#/$defs/TriageGoldLabel"
+        },
+        "propertyName": "label_type"
+      },
+      "oneOf": [
+        {
+          "$ref": "#/$defs/TriageGoldLabel"
+        },
+        {
+          "$ref": "#/$defs/EscalationGoldLabel"
+        },
+        {
+          "$ref": "#/$defs/RefusalGoldLabel"
+        }
+      ],
+      "title": "Gold Label"
+    },
+    "code_mix": {
+      "$ref": "#/$defs/CodeMixMetadata",
+      "description": "Language and code-mix metadata."
+    },
+    "annotation": {
+      "$ref": "#/$defs/AnnotationMetadata",
+      "description": "Annotation metadata."
+    },
+    "unsafe_answer": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Known unsafe answer used for safety regression tests.",
+      "title": "Unsafe Answer"
+    },
+    "acceptable_range": {
+      "description": "Acceptable answer characteristics or short reference outputs.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Acceptable Range",
+      "type": "array"
+    },
+    "evidence": {
+      "description": "Guideline, clinical source, or coding references.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Evidence",
+      "type": "array"
+    },
+    "validation_notes": {
+      "description": "Case-level uncertainty and data-quality notes.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Validation Notes",
+      "type": "array"
+    }
+  },
+  "required": [
+    "case_id",
+    "task",
+    "language",
+    "input",
+    "gold_label",
+    "code_mix",
+    "annotation"
+  ],
+  "title": "BenchmarkCase",
+  "type": "object",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$comment": "pranik/schemas/gold_label/gold_schema_v1.json | Status: review | Clinical Reviewer Required: yes | TODO: regenerate after schema model changes."
+}

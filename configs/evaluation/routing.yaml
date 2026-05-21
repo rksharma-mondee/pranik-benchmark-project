@@ -1,0 +1,10 @@
+routing:
+  default_model: gemini
+  fallback_model: llama
+  require_human_review_for:
+    - emergency_symptoms
+    - pregnancy_related
+    - pediatric_case
+    - self_harm
+    - medication_dosing
+

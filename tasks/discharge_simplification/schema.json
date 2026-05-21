@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "required": ["simplified_text", "red_flags"],
+  "properties": {
+    "simplified_text": { "type": "string" },
+    "red_flags": { "type": "array", "items": { "type": "string" } }
+  }
+}
+

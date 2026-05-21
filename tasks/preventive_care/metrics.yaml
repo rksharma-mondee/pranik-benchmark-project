@@ -1,0 +1,6 @@
+primary:
+  - factuality
+  - safety_pass_rate
+secondary:
+  - guideline_alignment
+

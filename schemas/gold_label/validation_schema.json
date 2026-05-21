@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Gold Dataset Validation",
+  "type": "object",
+  "required": ["dataset_version", "records"],
+  "properties": {
+    "dataset_version": { "type": "string" },
+    "records": {
+      "type": "array",
+      "items": { "$ref": "./gold_schema_v1.json" }
+    }
+  }
+}
+

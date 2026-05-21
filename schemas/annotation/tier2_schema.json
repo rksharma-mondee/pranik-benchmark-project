@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tier 2 Clinical Review",
+  "type": "object",
+  "required": ["item_id", "reviewer_id", "decision"],
+  "properties": {
+    "item_id": { "type": "string" },
+    "reviewer_id": { "type": "string" },
+    "decision": { "type": "string", "enum": ["approve", "revise", "escalate"] },
+    "rationale": { "type": "string" }
+  }
+}
+

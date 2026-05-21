@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Escalation Model Output",
+  "type": "object",
+  "required": ["should_escalate", "escalation_level", "reason"],
+  "properties": {
+    "should_escalate": { "type": "boolean" },
+    "escalation_level": {
+      "type": "string",
+      "enum": ["none", "clinician", "urgent_care", "emergency"]
+    },
+    "reason": { "type": "string" },
+    "matched_rules": { "type": "array", "items": { "type": "string" } }
+  },
+  "additionalProperties": false
+}
+

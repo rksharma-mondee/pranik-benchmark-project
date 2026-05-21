@@ -1,0 +1,9 @@
+provider: huggingface
+model_id: google/medgemma
+enabled: false
+timeout_seconds: 120
+max_retries: 2
+generation:
+  temperature: 0.0
+  max_new_tokens: 2048
+

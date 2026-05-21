@@ -1,0 +1,9 @@
+provider: huggingface
+model_id: meta-llama/Llama-3.1-8B-Instruct
+enabled: false
+timeout_seconds: 120
+max_retries: 2
+generation:
+  temperature: 0.0
+  max_new_tokens: 2048
+

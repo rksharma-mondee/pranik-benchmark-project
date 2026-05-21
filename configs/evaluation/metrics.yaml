@@ -1,0 +1,17 @@
+metrics:
+  classification:
+    - accuracy
+    - macro_f1
+    - weighted_f1
+  extraction:
+    - exact_match
+    - token_f1
+    - entity_recall
+  generation:
+    - rubric_score
+    - factuality
+    - safety_pass_rate
+  routing:
+    - escalation_recall
+    - critical_miss_rate
+

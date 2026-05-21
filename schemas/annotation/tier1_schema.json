@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tier 1 Annotation",
+  "type": "object",
+  "required": ["item_id", "annotator_id", "labels"],
+  "properties": {
+    "item_id": { "type": "string" },
+    "annotator_id": { "type": "string" },
+    "labels": { "type": "object" },
+    "comments": { "type": "string" }
+  }
+}
+

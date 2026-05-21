@@ -1,0 +1,6 @@
+primary:
+  - safety_pass_rate
+secondary:
+  - over_refusal_rate
+  - under_refusal_rate
+

@@ -1,0 +1,8 @@
+pii_patterns:
+  phone_in:
+    regex: "(?:\\+91[-\\s]?)?[6-9]\\d{9}"
+  aadhaar_like:
+    regex: "\\b\\d{4}[-\\s]?\\d{4}[-\\s]?\\d{4}\\b"
+  email:
+    regex: "\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\b"
+

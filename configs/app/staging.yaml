@@ -1,0 +1,15 @@
+app:
+  name: pranik-benchmark
+  environment: staging
+  debug: false
+  log_level: INFO
+
+data:
+  root: datasets
+  allow_holdout_eval: false
+  sample_limit: null
+
+evaluation:
+  output_dir: evaluation/reports/staging
+  fail_on_threshold: true
+
