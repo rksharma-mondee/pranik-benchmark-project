@@ -239,6 +239,229 @@ class RefusalGoldLabel(GoldLabelBase):
     )
 
 
+class SymptomExtractionGoldLabel(GoldLabelBase):
+    """Structured entity extraction from free-text patient narrative."""
+
+    label_type: Literal["symptom_extraction"] = Field(
+        default="symptom_extraction",
+        description="Gold-label type.",
+    )
+    symptoms: list[str] = Field(..., description="Extracted symptom entities.")
+    onset: str | None = Field(default=None, description="When symptoms began.")
+    duration: str | None = Field(default=None, description="How long symptoms have lasted.")
+    severity: Literal["mild", "moderate", "severe"] | None = Field(
+        default=None,
+        description="Symptom severity if stated or inferable.",
+    )
+    negated_symptoms: list[str] = Field(
+        default_factory=list,
+        description="Symptoms explicitly denied.",
+    )
+    body_locations: list[str] = Field(
+        default_factory=list,
+        description="Body locations mentioned in the narrative.",
+    )
+    associated_symptoms: list[str] = Field(
+        default_factory=list,
+        description="Secondary reported symptoms.",
+    )
+    family_reported: bool = Field(
+        default=False,
+        description="Whether symptoms were reported by a family member.",
+    )
+    extraction_confidence: Literal["high", "medium", "low"] = Field(
+        default="high",
+        description="Confidence in the extraction label.",
+    )
+
+
+class MedicationExplanationGoldLabel(GoldLabelBase):
+    """Patient-appropriate medication explanation evaluation."""
+
+    label_type: Literal["medication_explanation"] = Field(
+        default="medication_explanation",
+        description="Gold-label type.",
+    )
+    medication_name: str = Field(..., description="Medication being explained.")
+    correct_dosage: str = Field(..., description="Correct patient-facing dosage guidance.")
+    correct_timing: str = Field(..., description="Correct timing or usage guidance.")
+    side_effects_to_mention: list[str] = Field(
+        ...,
+        description="Side effects that should appear when relevant.",
+    )
+    contraindications: list[str] = Field(
+        default_factory=list,
+        description="Contraindications that must trigger a warning.",
+    )
+    interaction_warning: str | None = Field(
+        default=None,
+        description="Drug or condition interaction warning.",
+    )
+    literacy_appropriate: bool = Field(
+        ...,
+        description="Whether the expected explanation is appropriate for the target literacy.",
+    )
+    dangerous_if_missed: bool = Field(
+        default=False,
+        description="Whether missing this guidance could be high risk.",
+    )
+    unsafe_advice: str = Field(..., description="Example of dangerous medication guidance.")
+
+
+class MedicalCounselingGoldLabel(GoldLabelBase):
+    """Empathetic, culturally appropriate, clinically accurate counseling."""
+
+    label_type: Literal["counseling", "medical_counseling"] = Field(
+        default="counseling",
+        description="Gold-label type.",
+    )
+    clinical_accuracy_required: list[str] = Field(
+        ...,
+        description="Clinical facts that must be present.",
+    )
+    cultural_considerations: list[str] = Field(
+        ...,
+        description="Indian context factors to address.",
+    )
+    empathy_required: bool = Field(
+        default=True,
+        description="Whether an empathetic tone is required.",
+    )
+    referral_required: bool = Field(
+        default=False,
+        description="Whether the response should recommend clinician review.",
+    )
+    unsafe_advice: str = Field(..., description="Harmful counseling example.")
+    acceptable_tone: Literal["empathetic", "informational", "directive"] = Field(
+        default="empathetic",
+        description="Acceptable response tone.",
+    )
+    avoid_phrases: list[str] = Field(
+        default_factory=list,
+        description="Phrases that would be culturally or clinically wrong.",
+    )
+
+
+class PreventiveCareGoldLabel(GoldLabelBase):
+    """Evidence-based India-epidemiology-aligned preventive guidance."""
+
+    label_type: Literal["preventive_care"] = Field(
+        default="preventive_care",
+        description="Gold-label type.",
+    )
+    recommended_actions: list[str] = Field(
+        ...,
+        description="Specific preventive steps expected in the response.",
+    )
+    guideline_source: list[str] = Field(
+        ...,
+        description="Guideline sources or source labels.",
+    )
+    india_specific: bool = Field(
+        default=True,
+        description="Whether guidance must be India relevant.",
+    )
+    culturally_feasible: bool = Field(
+        default=True,
+        description="Whether guidance should be feasible in Indian context.",
+    )
+    vaccination_relevant: bool = Field(
+        default=False,
+        description="Whether vaccination guidance is relevant.",
+    )
+    dietary_guidance: str | None = Field(
+        default=None,
+        description="Dietary guidance expected in the response.",
+    )
+    unsafe_advice: str = Field(..., description="Unsafe preventive-care advice.")
+    misinformation_to_avoid: list[str] = Field(
+        default_factory=list,
+        description="Common health myths or unsafe claims to counter.",
+    )
+
+
+class DischargeSimplificationGoldLabel(GoldLabelBase):
+    """Convert complex discharge notes to vernacular 5th-grade literacy level."""
+
+    label_type: Literal["discharge_simplification"] = Field(
+        default="discharge_simplification",
+        description="Gold-label type.",
+    )
+    original_complexity: Literal["high", "medium"] = Field(
+        default="high",
+        description="Complexity of the source discharge note.",
+    )
+    target_literacy_level: Literal["low", "medium"] = Field(
+        default="low",
+        description="Target patient literacy level.",
+    )
+    danger_signs_to_include: list[str] = Field(
+        ...,
+        description="Warning signs the patient must know.",
+    )
+    medications_to_explain: list[str] = Field(
+        ...,
+        description="Drugs requiring clear explanation.",
+    )
+    followup_instructions: str = Field(
+        ...,
+        description="When and where to return for follow-up.",
+    )
+    readability_target: str = Field(
+        default="5th_grade",
+        description="Target readability level.",
+    )
+    missing_danger_sign_is_fatal: bool = Field(
+        default=True,
+        description="Whether omitting danger signs is a critical failure.",
+    )
+    unsafe_simplification: str = Field(
+        ...,
+        description="Example that removes critical discharge information.",
+    )
+
+
+class DoctorNoteSummarizationGoldLabel(GoldLabelBase):
+    """Summarize clinical transcript into structured SOAP note."""
+
+    label_type: Literal["doctor_note_summary", "doctor_note_summarization"] = Field(
+        default="doctor_note_summary",
+        description="Gold-label type.",
+    )
+    subjective_required: list[str] = Field(
+        ...,
+        description="Information that must appear in the subjective section.",
+    )
+    objective_required: list[str] = Field(
+        ...,
+        description="Information that must appear in the objective section.",
+    )
+    assessment_required: list[str] = Field(
+        ...,
+        description="Information that must appear in the assessment section.",
+    )
+    plan_required: list[str] = Field(
+        ...,
+        description="Information that must appear in the plan section.",
+    )
+    critical_info_must_retain: list[str] = Field(
+        ...,
+        description="Clinical information that cannot be lost.",
+    )
+    hallucination_risk_fields: list[str] = Field(
+        ...,
+        description="Fields where models often invent facts.",
+    )
+    temporal_accuracy_required: bool = Field(
+        default=True,
+        description="Whether dates and timelines must be correct.",
+    )
+    unsafe_summary: str = Field(
+        ...,
+        description="Example that omits critical clinical information.",
+    )
+
+
 class CodeMixMetadata(BaseModel):
     """Language and code-mix metadata for a benchmark case.
 
@@ -315,7 +538,15 @@ class BenchmarkInput(BaseModel):
 
 
 GoldLabel = Annotated[
-    TriageGoldLabel | EscalationGoldLabel | RefusalGoldLabel,
+    TriageGoldLabel
+    | EscalationGoldLabel
+    | RefusalGoldLabel
+    | SymptomExtractionGoldLabel
+    | MedicationExplanationGoldLabel
+    | MedicalCounselingGoldLabel
+    | PreventiveCareGoldLabel
+    | DischargeSimplificationGoldLabel
+    | DoctorNoteSummarizationGoldLabel,
     Field(discriminator="label_type"),
 ]
 
@@ -332,10 +563,12 @@ class BenchmarkCase(BaseModel):
         "refusal_behavior",
         "symptom_extraction",
         "medication_explanation",
+        "medical_counseling",
         "discharge_simplification",
         "counseling",
         "preventive_care",
         "doctor_note_summary",
+        "doctor_note_summarization",
     ] = Field(..., description="Benchmark task name.")
     language: LanguageCode = Field(..., description="Primary language label.")
     input: BenchmarkInput = Field(..., description="Task input payload.")
@@ -369,10 +602,47 @@ class BenchmarkCase(BaseModel):
         Raises:
             ValueError: If task and gold_label label_type disagree.
         """
-        expected_label = "refusal" if self.task == "refusal_behavior" else self.task
+        expected_label = TASK_GOLD_LABEL_TYPE_BY_TASK[self.task]
         if self.gold_label.label_type != expected_label:
             raise ValueError("task must match gold_label.label_type")
         return self
+
+
+TASK_GOLD_LABEL_MAP: dict[str, type[BaseModel]] = {
+    "triage": TriageGoldLabel,
+    "escalation": EscalationGoldLabel,
+    "refusal_behavior": RefusalGoldLabel,
+    "symptom_extraction": SymptomExtractionGoldLabel,
+    "medication_explanation": MedicationExplanationGoldLabel,
+    "counseling": MedicalCounselingGoldLabel,
+    "medical_counseling": MedicalCounselingGoldLabel,
+    "preventive_care": PreventiveCareGoldLabel,
+    "discharge_simplification": DischargeSimplificationGoldLabel,
+    "doctor_note_summary": DoctorNoteSummarizationGoldLabel,
+    "doctor_note_summarization": DoctorNoteSummarizationGoldLabel,
+}
+
+TASK_GOLD_LABEL_TYPE_BY_TASK: dict[str, str] = {
+    "triage": "triage",
+    "escalation": "escalation",
+    "refusal_behavior": "refusal",
+    "symptom_extraction": "symptom_extraction",
+    "medication_explanation": "medication_explanation",
+    "counseling": "counseling",
+    "medical_counseling": "medical_counseling",
+    "preventive_care": "preventive_care",
+    "discharge_simplification": "discharge_simplification",
+    "doctor_note_summary": "doctor_note_summary",
+    "doctor_note_summarization": "doctor_note_summarization",
+}
+
+
+def get_gold_label_class(task: str) -> type[BaseModel]:
+    """Return the correct GoldLabel Pydantic class for a given task name."""
+
+    if task not in TASK_GOLD_LABEL_MAP:
+        raise ValueError(f"Unknown task: {task}. Valid: {list(TASK_GOLD_LABEL_MAP)}")
+    return TASK_GOLD_LABEL_MAP[task]
 
 
 def export_json_schema() -> dict[str, Any]:

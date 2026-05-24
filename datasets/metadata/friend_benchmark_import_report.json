@@ -1,0 +1,48 @@
+{
+  "generated_at": "2026-05-22T06:49:37.095169+00:00",
+  "source_files": [
+    "C:\\Users\\rahul\\Downloads\\pranik_benchmark.jsonl",
+    "C:\\Users\\rahul\\Downloads\\pranik_benchmark_v2.jsonl"
+  ],
+  "source_record_counts": {
+    "pranik_benchmark.jsonl": 50,
+    "pranik_benchmark_v2.jsonl": 93
+  },
+  "category_counts": {
+    "Triage and urgency detection": 23,
+    "Symptom extraction": 18,
+    "Medication explanation": 15,
+    "Medical counseling": 16,
+    "Refusal behavior": 14,
+    "Preventive care guidance": 6,
+    "Discharge-summary simplification": 5,
+    "Escalation behavior": 14,
+    "Doctor-note summarization": 5,
+    "Preventive care advice": 9,
+    "Discharge summary simplification": 9,
+    "Doctor note summarization": 9
+  },
+  "converted_records": 143,
+  "unsupported_records": 0,
+  "conversion_errors": 0,
+  "converted_task_counts": {
+    "triage": 23,
+    "symptom_extraction": 18,
+    "medication_explanation": 15,
+    "counseling": 16,
+    "refusal_behavior": 14,
+    "preventive_care": 15,
+    "discharge_simplification": 14,
+    "escalation": 14,
+    "doctor_note_summary": 14
+  },
+  "output_path": "datasets\\synthetic\\friend_pranik_supported_20260522.jsonl",
+  "unsupported_path": "datasets\\interim\\friend_pranik_unsupported_20260522.jsonl",
+  "errors": [],
+  "notes": [
+    "All known friend-generated categories are converted into schemas supported by gold_schema_v1.py.",
+    "Rows that fail conversion are preserved verbatim in datasets/interim with _import_error.",
+    "All converted rows are validated with BenchmarkCase before writing.",
+    "Converted labels remain synthetic drafts and require clinician review before gold release."
+  ]
+}

@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PRANIK Benchmark Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  </head>
+  <body class="bg-gray-50 text-gray-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+      const tabs = ["Overview", "Scorecards", "Routing", "Failures"];
+
+      function useApi(path) {
+        const [data, setData] = React.useState(null);
+        const [loading, setLoading] = React.useState(true);
+        const [error, setError] = React.useState(null);
+
+        React.useEffect(() => {
+          let mounted = true;
+          setLoading(true);
+          fetch(path)
+            .then((response) => {
+              if (!response.ok) throw new Error(`Request failed: ${response.status}`);
+              return response.json();
+            })
+            .then((payload) => {
+              if (!mounted) return;
+              setData(payload);
+              setLoading(false);
+            })
+            .catch((err) => {
+              if (!mounted) return;
+              setError(err.message);
+              setLoading(false);
+            });
+          return () => {
+            mounted = false;
+          };
+        }, [path]);
+
+        return { data, loading, error };
+      }
+
+      function Loading() {
+        return (
+          <div className="flex justify-center py-16">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-gray-200 border-t-indigo-600"></div>
+          </div>
+        );
+      }
+
+      function EmptyState() {
+        return (
+          <div className="py-16 text-center text-gray-400">
+            <p className="text-sm">No evaluation data yet.</p>
+            <p className="mt-1 text-xs">Run: python -m evaluation.comparison.run_comparison</p>
+          </div>
+        );
+      }
+
+      function DataState({ loading, error, data, children }) {
+        if (loading) return <Loading />;
+        if (error || data === null || data === undefined) return <EmptyState />;
+        if (Array.isArray(data) && data.length === 0) return <EmptyState />;
+        return children(data);
+      }
+
+      function percent(value) {
+        if (value === null || value === undefined || Number.isNaN(Number(value))) return "n/a";
+        return `${(Number(value) * 100).toFixed(1)}%`;
+      }
+
+      function labelize(value) {
+        if (!value) return "Unknown";
+        return String(value)
+          .replace(/^groq:/, "")
+          .replaceAll("_", " ")
+          .replaceAll("-", " ");
+      }
+
+      function verdictFor(model) {
+        if (model.production_verdict) return model.production_verdict;
+        const recall = Number(model.emergency_recall || 0);
+        const fatal = Number(model.fatal_failure_count ?? model.fatal_failures ?? 0);
+        if (recall >= 0.9 && fatal === 0) return "SAFE";
+        if (recall < 0.9 || fatal > 0) return "UNSAFE";
+        return "REVIEW_REQUIRED";
+      }
+
+      function rowClass(model) {
+        const verdict = verdictFor(model);
+        if (verdict === "REVIEW_REQUIRED") return "bg-yellow-50 text-yellow-900";
+        const fatal = Number(model.fatal_failure_count ?? model.fatal_failures ?? 0);
+        const recall = Number(model.emergency_recall || 0);
+        if (recall >= 0.9 && fatal === 0) return "bg-green-50 text-green-900";
+        return "bg-red-50 text-red-900";
+      }
+
+      function BarChart({ title, data }) {
+        const entries = Object.entries(data || {}).sort((a, b) => b[1] - a[1]);
+        const max = entries.reduce((largest, [, value]) => Math.max(largest, value), 0);
+        if (entries.length === 0) return <EmptyState />;
+        return (
+          <section className="w-full">
+            <h2 className="mb-3 text-sm font-medium text-gray-900">{title}</h2>
+            <div className="space-y-3">
+              {entries.map(([name, value]) => (
+                <div key={name} className="grid grid-cols-[150px_1fr_48px] items-center gap-3">
+                  <div className="truncate text-xs text-gray-600" title={name}>{name}</div>
+                  <div className="h-3 rounded bg-gray-100">
+                    <div
+                      className="h-3 rounded bg-indigo-600"
+                      style={{ width: `${max ? (value / max) * 100 : 0}%` }}
+                    ></div>
+                  </div>
+                  <div className="text-right text-xs text-gray-500">{value}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        );
+      }
+
+      function Overview() {
+        const state = useApi("/api/benchmark/stats");
+        return (
+          <DataState {...state}>
+            {(data) => {
+              const taskCount = Object.keys(data.task_distribution || {}).length;
+              const languageCount = Object.keys(data.language_distribution || {}).length;
+              const healthy = data.pipeline_status === "healthy";
+              return (
+                <div className="space-y-8">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h2 className="text-base font-medium text-gray-900">Benchmark Overview</h2>
+                      <p className="mt-1 text-sm text-gray-500">Dataset and preprocessing status from local artifacts.</p>
+                    </div>
+                    <span className={`rounded px-3 py-1 text-xs font-medium ${healthy ? "bg-green-100 text-green-600" : "bg-red-50 text-red-600"}`}>
+                      {healthy ? "Pipeline healthy" : "No evaluation data"}
+                    </span>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-4">
+                    {[
+                      ["Total cases", data.total_processed_cases],
+                      ["Tasks", taskCount],
+                      ["Languages", languageCount],
+                      ["PII scrubbed", data.pii_scrubbed_count],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-lg border border-gray-200 bg-white p-4">
+                        <div className="text-2xl font-semibold text-gray-900">{value}</div>
+                        <div className="mt-1 text-xs uppercase tracking-wide text-gray-500">{label}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="grid gap-8 lg:grid-cols-2">
+                    <BarChart title="Task distribution" data={data.task_distribution} />
+                    <BarChart title="Language distribution" data={data.language_distribution} />
+                  </div>
+                </div>
+              );
+            }}
+          </DataState>
+        );
+      }
+
+      function Scorecards() {
+        const state = useApi("/api/scorecards/latest");
+        return (
+          <DataState {...state}>
+            {(data) => {
+              const models = data.models || [];
+              if (models.length === 0) return <EmptyState />;
+              return (
+                <div className="space-y-5">
+                  <div>
+                    <h2 className="text-base font-medium text-gray-900">Model Scorecards</h2>
+                    <p className="mt-1 text-sm text-gray-500">Latest comparison: {data.benchmark_path || "unknown benchmark"}</p>
+                  </div>
+                  <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                    <table className="min-w-full divide-y divide-gray-200 text-sm">
+                      <thead className="bg-gray-100 text-left text-xs uppercase tracking-wide text-gray-600">
+                        <tr>
+                          {["Model", "Cases", "Parse", "Sev Acc", "EMRG Recall", "Fatal", "Verdict"].map((header) => (
+                            <th key={header} className="px-4 py-3 font-medium">{header}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {models.map((model) => {
+                          const fatal = Number(model.fatal_failure_count || 0);
+                          const recall = Number(model.emergency_recall || 0);
+                          const verdict = verdictFor(model);
+                          return (
+                            <tr key={model.model_id} className={rowClass(model)}>
+                              <td className="px-4 py-3 font-medium">{model.display_name || labelize(model.model_id)}</td>
+                              <td className="px-4 py-3">{model.total_cases}</td>
+                              <td className="px-4 py-3">{percent(model.parse_success_rate)}</td>
+                              <td className="px-4 py-3">{percent(model.severity_accuracy)}</td>
+                              <td className="px-4 py-3">{percent(model.emergency_recall)} {recall >= 0.9 ? "✅" : "⚠️"}</td>
+                              <td className="px-4 py-3">
+                                <span className={`rounded px-2 py-1 text-xs font-medium ${fatal > 0 ? "bg-red-600 text-white" : "bg-green-100 text-green-600"}`}>
+                                  {fatal}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 font-medium">
+                                {verdict === "SAFE" ? "✅ SAFE" : verdict === "REVIEW_REQUIRED" ? "⚠️ REVIEW" : "❌ UNSAFE"}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            }}
+          </DataState>
+        );
+      }
+
+      function Routing() {
+        const state = useApi("/api/routing/table");
+        return (
+          <DataState {...state}>
+            {(data) => {
+              const rows = data.routing_table || [];
+              if (rows.length === 0) return <EmptyState />;
+              return (
+                <div className="space-y-5">
+                  <div>
+                    <h2 className="text-base font-medium text-gray-900">Production Routing</h2>
+                    <p className="mt-1 text-sm text-gray-500">Derived from latest comparison report. Last evaluated: {data.last_evaluated || "unknown"}</p>
+                  </div>
+                  <div className="space-y-4">
+                    {rows.map((model) => {
+                      const verdict = model.production_verdict;
+                      const tone = verdict === "SAFE" ? "border-green-200 bg-green-50" : verdict === "REVIEW_REQUIRED" ? "border-yellow-200 bg-yellow-50" : "border-red-200 bg-red-50";
+                      const icon = verdict === "SAFE" ? "✅" : verdict === "REVIEW_REQUIRED" ? "⚠️" : "❌";
+                      return (
+                        <section key={model.model_id} className={`rounded-lg border p-5 ${tone}`}>
+                          <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                              <h3 className="text-sm font-semibold text-gray-900">{icon} {model.display_name} — {verdict}</h3>
+                              <p className="mt-2 text-sm text-gray-700">
+                                emergency_recall: {percent(model.emergency_recall)} | fatal_misses: {model.fatal_failures}
+                              </p>
+                            </div>
+                            <span className="rounded bg-white px-3 py-1 text-xs font-medium text-gray-600">{model.recommended_use}</span>
+                          </div>
+                          <div className="mt-4 grid gap-3 text-sm md:grid-cols-2">
+                            <div>
+                              <div className="text-xs uppercase tracking-wide text-gray-500">Cleared for</div>
+                              <p className="mt-1 text-gray-800">{model.cleared_tasks.length ? model.cleared_tasks.join(" · ") : "None"}</p>
+                            </div>
+                            <div>
+                              <div className="text-xs uppercase tracking-wide text-gray-500">Blocked from</div>
+                              <p className="mt-1 text-gray-800">{model.blocked_tasks.length ? model.blocked_tasks.join(" · ") : "None"}</p>
+                            </div>
+                          </div>
+                        </section>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            }}
+          </DataState>
+        );
+      }
+
+      function Failures() {
+        const criticalState = useApi("/api/failures/critical");
+        const languageState = useApi("/api/failures/by-language");
+        const taskState = useApi("/api/failures/by-task");
+        const loading = criticalState.loading || languageState.loading || taskState.loading;
+        const error = criticalState.error || languageState.error || taskState.error;
+        if (loading) return <Loading />;
+        if (error) return <EmptyState />;
+        const critical = criticalState.data || [];
+        return (
+          <div className="space-y-8">
+            <div>
+              <h2 className="text-base font-medium text-gray-900">Failure Review Queue</h2>
+              <p className="mt-1 text-sm text-gray-500">Critical misses requiring clinician review.</p>
+            </div>
+
+            {critical.length > 0 ? (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
+                <strong>{critical.length} CRITICAL failures</strong> require immediate MD review
+              </div>
+            ) : (
+              <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">No critical failures in the latest report.</div>
+            )}
+
+            {critical.length > 0 && (
+              <div className="overflow-hidden rounded-lg border border-gray-200 bg-white">
+                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                  <thead className="bg-gray-100 text-left text-xs uppercase tracking-wide text-gray-600">
+                    <tr>
+                      {["Case ID", "Language", "Gold", "Predicted", "Type"].map((header) => (
+                        <th key={header} className="px-4 py-3 font-medium">{header}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-200">
+                    {critical.map((failure, index) => (
+                      <tr key={`${failure.case_id}-${failure.model}-${index}`}>
+                        <td className="max-w-[280px] truncate px-4 py-3 font-medium" title={failure.case_id}>{failure.case_id}</td>
+                        <td className="px-4 py-3">{failure.language}</td>
+                        <td className="px-4 py-3">{failure.gold_urgency}</td>
+                        <td className="px-4 py-3">{failure.predicted_urgency || "PARSE_FAIL"}</td>
+                        <td className="px-4 py-3 text-red-600">{failure.primary_failure}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            <div className="grid gap-8 lg:grid-cols-2">
+              <BarChart title="Failure by language" data={languageState.data || {}} />
+              <BarChart title="Failure by task" data={taskState.data || {}} />
+            </div>
+          </div>
+        );
+      }
+
+      function App() {
+        const [active, setActive] = React.useState("Overview");
+        const Current = { Overview, Scorecards, Routing, Failures }[active];
+        return (
+          <div className="min-h-screen">
+            <header className="border-b border-gray-200 bg-white px-6 py-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-lg font-medium text-gray-900">PRANIK</h1>
+                  <p className="text-sm text-gray-500">Indic Healthcare LLM Benchmark · v1.0</p>
+                </div>
+                <span className="text-xs text-gray-400">Internal · Not for distribution</span>
+              </div>
+            </header>
+            <nav className="border-b border-gray-200 bg-white px-6">
+              <div className="flex gap-6">
+                {tabs.map((tab) => (
+                  <button
+                    key={tab}
+                    onClick={() => setActive(tab)}
+                    className={`py-3 text-sm font-medium ${active === tab ? "border-b-2 border-indigo-600 text-indigo-600" : "text-gray-500 hover:text-gray-700"}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </nav>
+            <main className="mx-auto max-w-7xl px-6 py-8">
+              <Current />
+            </main>
+          </div>
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    </script>
+  </body>
+</html>
