@@ -7,6 +7,7 @@ __pycache__/
 .venv/
 venv/
 env/
+ls-env/
 build/
 dist/
 *.egg-info/
@@ -33,11 +34,13 @@ datasets/holdout/**
 synthetic_generation/outputs/**
 evaluation/reports/**
 evaluation/scorecards/**
+evaluation/results/**
 observability/logs/**
 observability/wandb/**
 observability/mlflow/**
 
 !**/.gitkeep
+!evaluation/results/.gitkeep
 !datasets/metadata/*.json
 !datasets/metadata/*.md
 !datasets/gold/**/.gitkeep
@@ -50,4 +53,3 @@ observability/mlflow/**
 Thumbs.db
 .idea/
 .vscode/
-
