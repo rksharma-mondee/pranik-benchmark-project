@@ -40,7 +40,7 @@ class PipelineConfig:
     )
 
     # Data paths
-    gold_cases_dir: Path = Path("datasets/processed")
+    gold_cases_dir: Path = Path("datasets/gold")
     results_dir: Path = Path("evaluation/results")
     reports_dir: Path = Path("evaluation/reports")
 

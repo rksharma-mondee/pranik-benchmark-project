@@ -27,7 +27,7 @@ if __name__ == "__main__":
             "mixtral-8x7b-32768",
         ],
         tasks=["triage", "escalation"],
-        run_preprocessing=True,
+        run_preprocessing=False,
         block_on_fatal_miss=True,
     )
     result = run_regression_pipeline(config)

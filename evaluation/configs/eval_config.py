@@ -28,7 +28,7 @@ class EvalConfig:
     model_id: str = "gemini-2.0-flash"
     tasks: list[str] = field(default_factory=lambda: ["triage"])
     input_paths: list[Path] = field(
-        default_factory=lambda: [Path("datasets/processed/friend_pranik_supported_20260522.jsonl")]
+        default_factory=lambda: [Path("datasets/gold/triage_gold_v1.jsonl")]
     )
     output_dir: Path = Path("evaluation/results")
     max_cases: int | None = None
