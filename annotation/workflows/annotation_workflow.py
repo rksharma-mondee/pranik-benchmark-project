@@ -109,6 +109,8 @@ def import_completed_annotations(
         if isinstance(task.get("annotations"), list) and len(task["annotations"]) >= 2
     ]
     pending = len(exported_tasks) - len(completed)
+    existing_case_ids = _existing_gold_case_ids(output_dir)
+    skipped_existing: set[str] = set()
 
     approved_tasks: list[dict[str, Any]] = []
     flagged_tasks: list[dict[str, Any]] = []
@@ -118,9 +120,16 @@ def import_completed_annotations(
         iaa_report = compute_iaa(task_batch, task_name)
         iaa_by_task[task_name] = iaa_report
         tier4_ids = set(iaa_report["tier4_case_ids"])
+        seen_task_case_ids: set[str] = set()
         for task in task_batch:
             case_id = _case_id(task)
-            if case_id in tier4_ids or iaa_report["requires_tier4"]:
+            if not case_id or case_id in seen_task_case_ids:
+                continue
+            seen_task_case_ids.add(case_id)
+            if case_id in existing_case_ids:
+                skipped_existing.add(case_id)
+                continue
+            if case_id in tier4_ids or _has_reviewer_disagreement(task):
                 flagged_tasks.append(task)
             elif iaa_report["meets_gate"]:
                 approved_tasks.append(task)
@@ -148,6 +157,7 @@ def import_completed_annotations(
         "completed": len(completed),
         "approved": len(approved_tasks),
         "flagged_for_tier4": len(flagged_tasks),
+        "skipped_existing_gold": len(skipped_existing),
         "pending": pending,
         "gold_write_counts": write_counts,
         "arbitration_counts": arbitration_counts,

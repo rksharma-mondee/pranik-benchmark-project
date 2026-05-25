@@ -44,6 +44,41 @@ def test_finalize_gold_batch_writes_only_consensus_cases(tmp_path, monkeypatch) 
     assert cases[-1]["annotation"]["iaa_score"] == 1.0
 
 
+def test_import_completed_annotations_skips_existing_gold(tmp_path, monkeypatch) -> None:
+    gold_dir = tmp_path / "gold"
+    gold_dir.mkdir()
+    existing_case = _triage_case("case-existing")
+    with jsonlines.open(gold_dir / "triage_gold_v1.jsonl", mode="w") as writer:
+        writer.write(existing_case)
+
+    existing_disputed = _ls_task(existing_case, "URGENT", "yes", "EMERGENCY", "yes")
+    new_disputed = _ls_task(_triage_case("case-new"), "URGENT", "yes", "EMERGENCY", "yes")
+    exported_queues = []
+
+    monkeypatch.setattr(
+        annotation_workflow,
+        "_ls_export_tasks",
+        lambda **_kwargs: [existing_disputed, new_disputed],
+    )
+
+    def _capture_queue(tasks, output_dir, *, reason):
+        exported_queues.append((tasks, output_dir, reason))
+        return {"written": len(tasks), "output_path": "queue.jsonl"}
+
+    monkeypatch.setattr(annotation_workflow, "export_tier4_arbitration_queue", _capture_queue)
+
+    summary = annotation_workflow.import_completed_annotations(
+        "http://localhost:8080",
+        "test-key",
+        2,
+        gold_dir,
+    )
+
+    assert summary["skipped_existing_gold"] == 1
+    assert summary["flagged_for_tier4"] == 1
+    assert [annotation_workflow._case_id(task) for task in exported_queues[0][0]] == ["case-new"]
+
+
 def _ls_task(
     source_case: dict,
     reviewer1_urgency: str,
