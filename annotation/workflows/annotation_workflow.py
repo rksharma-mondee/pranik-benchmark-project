@@ -236,6 +236,8 @@ def get_annotation_status(
         project_id=project_id,
     )
     review_counts = Counter(_annotation_count(task) for task in exported_tasks)
+    case_ids = [case_id for task in exported_tasks if (case_id := _case_id(task))]
+    unique_case_count = len(set(case_ids))
     ready_for_iaa = sum(count for reviews, count in review_counts.items() if reviews >= 2)
     pending_second_review = review_counts.get(1, 0)
     gold_counts = _gold_case_counts(output_dir)
@@ -245,6 +247,8 @@ def get_annotation_status(
         "project_title": getattr(project, "title", None),
         "maximum_annotations": getattr(project, "maximum_annotations", None),
         "task_count": len(exported_tasks),
+        "unique_case_count": unique_case_count,
+        "duplicate_case_rows": len(case_ids) - unique_case_count,
         "annotations_total": sum(_annotation_count(task) for task in exported_tasks),
         "cases_with_0_reviews": review_counts.get(0, 0),
         "cases_with_1_review": review_counts.get(1, 0),

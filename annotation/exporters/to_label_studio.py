@@ -24,6 +24,18 @@ from schemas.gold_label.gold_schema_v1 import BenchmarkCase, ValidationStatus
 logger = structlog.get_logger(__name__)
 
 TIER_3_TASKS = {"triage", "escalation", "refusal_behavior"}
+CASE_FIELD_NAMES = set(BenchmarkCase.model_fields)
+LANGUAGE_ALIASES = {
+    "bengali": "bn",
+    "bangla": "bn",
+    "en": "en-IN",
+    "english": "en-IN",
+    "en_in": "en-IN",
+    "en-in": "en-IN",
+    "hindi": "hi",
+    "kannada": "kn",
+    "telugu": "te",
+}
 
 
 def _get_required_tier(task: str) -> int:
@@ -66,7 +78,7 @@ def load_draft_cases(input_dir: Path) -> list[BenchmarkCase]:
         with jsonlines.open(path, mode="r") as reader:
             for payload in reader:
                 try:
-                    case = BenchmarkCase.model_validate(payload)
+                    case = BenchmarkCase.model_validate(_draft_case_payload(payload))
                 except Exception as exc:
                     logger.warning(
                         "label_studio_case_skipped",
@@ -79,6 +91,62 @@ def load_draft_cases(input_dir: Path) -> list[BenchmarkCase]:
                 if case.annotation.validation_status == ValidationStatus.DRAFT:
                     cases.append(case)
     return cases
+
+
+def _draft_case_payload(payload: Any) -> Any:
+    """Return a schema-compatible case payload from legacy draft JSONL shapes."""
+
+    if not isinstance(payload, dict):
+        return payload
+
+    candidate = payload
+    parsed_case = payload.get("parsed_case")
+    if isinstance(parsed_case, dict):
+        candidate = parsed_case
+
+    case_payload = {
+        key: value
+        for key, value in candidate.items()
+        if key in CASE_FIELD_NAMES
+    }
+    _normalize_legacy_language_values(case_payload)
+    _normalize_legacy_annotation(case_payload)
+    return case_payload
+
+
+def _normalize_legacy_language_values(case_payload: dict[str, Any]) -> None:
+    language = case_payload.get("language")
+    if isinstance(language, str):
+        case_payload["language"] = _normalize_language_code(language)
+
+    code_mix = case_payload.get("code_mix")
+    if not isinstance(code_mix, dict):
+        return
+
+    primary_language = code_mix.get("primary_language")
+    if isinstance(primary_language, str):
+        code_mix["primary_language"] = _normalize_language_code(primary_language)
+
+    secondary_languages = code_mix.get("secondary_languages")
+    if isinstance(secondary_languages, list):
+        code_mix["secondary_languages"] = [
+            _normalize_language_code(item) if isinstance(item, str) else item
+            for item in secondary_languages
+        ]
+
+
+def _normalize_legacy_annotation(case_payload: dict[str, Any]) -> None:
+    annotation = case_payload.get("annotation")
+    if not isinstance(annotation, dict):
+        return
+    tier = annotation.get("annotator_tier")
+    if isinstance(tier, int) and tier < 1:
+        annotation["annotator_tier"] = 1
+
+
+def _normalize_language_code(value: str) -> str:
+    normalized = value.strip()
+    return LANGUAGE_ALIASES.get(normalized.lower(), normalized)
 
 
 def export_label_studio_tasks(input_dir: Path, output_path: Path) -> dict[str, int]:

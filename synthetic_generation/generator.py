@@ -97,11 +97,11 @@ def _output_path(config: GenerationConfig, timestamp: str) -> Path:
     return config.output_dir / f"synthetic_{task_name}_{timestamp}.jsonl"
 
 
-def _make_case_id(task: str, language: str, counter: int) -> str:
+def _make_case_id(task: str, language: str, counter: int, run_id: str) -> str:
     """Create stable synthetic case identifier."""
     safe_language = language.replace("-", "").lower()
     safe_task = task.replace("_", "-")
-    return f"{safe_task}-{safe_language}-syn-{counter:03d}"
+    return f"{safe_task}-{safe_language}-{run_id}-syn-{counter:03d}"
 
 
 def _build_prompt(task: str, language: str, case_id: str, patient_profile: str) -> str:
@@ -123,6 +123,7 @@ def generate_dataset(config: GenerationConfig) -> list[GeneratedCase]:
         raise RuntimeError(f"Groq adapter health check failed for {config.model_id}")
 
     timestamp = datetime.now(UTC).strftime("%Y%m%d_%H%M%S")
+    run_id = datetime.now(UTC).strftime("%Y%m%d%H%M%S")
     output_path = _output_path(config, timestamp)
     results: list[GeneratedCase] = []
     successes = 0
@@ -134,7 +135,7 @@ def generate_dataset(config: GenerationConfig) -> list[GeneratedCase]:
             for language in config.languages:
                 for _ in range(config.cases_per_task_per_language):
                     counter += 1
-                    case_id = _make_case_id(task, language, counter)
+                    case_id = _make_case_id(task, language, counter, run_id)
                     patient_profile = random.choice(PATIENT_PROFILES)
                     prompt = _build_prompt(task, language, case_id, patient_profile)
 
