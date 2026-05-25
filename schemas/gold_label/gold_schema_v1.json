@@ -2,11 +2,11 @@
   "$defs": {
     "AnnotationMetadata": {
       "additionalProperties": false,
-      "description": "Annotation workflow metadata.\n\nAttributes:\n    annotator_tier: Annotation tier from 1 to 3.\n    iaa_score: Inter-annotator agreement score when available.\n    validation_status: Draft, reviewed, or approved status.\n    clinical_reviewer_required: Whether clinician review is required.\n    reviewer_notes: Human reviewer notes.",
+      "description": "Annotation workflow metadata.\n\nAttributes:\n    annotator_tier: Annotation tier from 1 to 4.\n    iaa_score: Inter-annotator agreement score when available.\n    validation_status: Draft, reviewed, or approved status.\n    clinical_reviewer_required: Whether clinician review is required.\n    reviewer_notes: Human reviewer notes.",
       "properties": {
         "annotator_tier": {
-          "description": "Annotation tier from 1 to 3.",
-          "maximum": 3,
+          "description": "Annotation tier from 1 to 4.",
+          "maximum": 4,
           "minimum": 1,
           "title": "Annotator Tier",
           "type": "integer"
@@ -174,6 +174,241 @@
       "title": "ContextType",
       "type": "string"
     },
+    "DischargeSimplificationGoldLabel": {
+      "additionalProperties": false,
+      "description": "Convert complex discharge notes to vernacular 5th-grade literacy level.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "const": "discharge_simplification",
+          "default": "discharge_simplification",
+          "description": "Gold-label type.",
+          "title": "Label Type",
+          "type": "string"
+        },
+        "original_complexity": {
+          "default": "high",
+          "description": "Complexity of the source discharge note.",
+          "enum": [
+            "high",
+            "medium"
+          ],
+          "title": "Original Complexity",
+          "type": "string"
+        },
+        "target_literacy_level": {
+          "default": "low",
+          "description": "Target patient literacy level.",
+          "enum": [
+            "low",
+            "medium"
+          ],
+          "title": "Target Literacy Level",
+          "type": "string"
+        },
+        "danger_signs_to_include": {
+          "description": "Warning signs the patient must know.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Danger Signs To Include",
+          "type": "array"
+        },
+        "medications_to_explain": {
+          "description": "Drugs requiring clear explanation.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Medications To Explain",
+          "type": "array"
+        },
+        "followup_instructions": {
+          "description": "When and where to return for follow-up.",
+          "title": "Followup Instructions",
+          "type": "string"
+        },
+        "readability_target": {
+          "default": "5th_grade",
+          "description": "Target readability level.",
+          "title": "Readability Target",
+          "type": "string"
+        },
+        "missing_danger_sign_is_fatal": {
+          "default": true,
+          "description": "Whether omitting danger signs is a critical failure.",
+          "title": "Missing Danger Sign Is Fatal",
+          "type": "boolean"
+        },
+        "unsafe_simplification": {
+          "description": "Example that removes critical discharge information.",
+          "title": "Unsafe Simplification",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reasoning",
+        "danger_signs_to_include",
+        "medications_to_explain",
+        "followup_instructions",
+        "unsafe_simplification"
+      ],
+      "title": "DischargeSimplificationGoldLabel",
+      "type": "object"
+    },
+    "DoctorNoteSummarizationGoldLabel": {
+      "additionalProperties": false,
+      "description": "Summarize clinical transcript into structured SOAP note.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "default": "doctor_note_summary",
+          "description": "Gold-label type.",
+          "enum": [
+            "doctor_note_summary",
+            "doctor_note_summarization"
+          ],
+          "title": "Label Type",
+          "type": "string"
+        },
+        "subjective_required": {
+          "description": "Information that must appear in the subjective section.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Subjective Required",
+          "type": "array"
+        },
+        "objective_required": {
+          "description": "Information that must appear in the objective section.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Objective Required",
+          "type": "array"
+        },
+        "assessment_required": {
+          "description": "Information that must appear in the assessment section.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Assessment Required",
+          "type": "array"
+        },
+        "plan_required": {
+          "description": "Information that must appear in the plan section.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Plan Required",
+          "type": "array"
+        },
+        "critical_info_must_retain": {
+          "description": "Clinical information that cannot be lost.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Critical Info Must Retain",
+          "type": "array"
+        },
+        "hallucination_risk_fields": {
+          "description": "Fields where models often invent facts.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Hallucination Risk Fields",
+          "type": "array"
+        },
+        "temporal_accuracy_required": {
+          "default": true,
+          "description": "Whether dates and timelines must be correct.",
+          "title": "Temporal Accuracy Required",
+          "type": "boolean"
+        },
+        "unsafe_summary": {
+          "description": "Example that omits critical clinical information.",
+          "title": "Unsafe Summary",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reasoning",
+        "subjective_required",
+        "objective_required",
+        "assessment_required",
+        "plan_required",
+        "critical_info_must_retain",
+        "hallucination_risk_fields",
+        "unsafe_summary"
+      ],
+      "title": "DoctorNoteSummarizationGoldLabel",
+      "type": "object"
+    },
     "EscalationGoldLabel": {
       "additionalProperties": false,
       "description": "Gold label for escalation detection cases.",
@@ -309,6 +544,349 @@
       "title": "LiteracyLevel",
       "type": "string"
     },
+    "MedicalCounselingGoldLabel": {
+      "additionalProperties": false,
+      "description": "Empathetic, culturally appropriate, clinically accurate counseling.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "default": "counseling",
+          "description": "Gold-label type.",
+          "enum": [
+            "counseling",
+            "medical_counseling"
+          ],
+          "title": "Label Type",
+          "type": "string"
+        },
+        "clinical_accuracy_required": {
+          "description": "Clinical facts that must be present.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Clinical Accuracy Required",
+          "type": "array"
+        },
+        "cultural_considerations": {
+          "description": "Indian context factors to address.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Cultural Considerations",
+          "type": "array"
+        },
+        "empathy_required": {
+          "default": true,
+          "description": "Whether an empathetic tone is required.",
+          "title": "Empathy Required",
+          "type": "boolean"
+        },
+        "referral_required": {
+          "default": false,
+          "description": "Whether the response should recommend clinician review.",
+          "title": "Referral Required",
+          "type": "boolean"
+        },
+        "unsafe_advice": {
+          "description": "Harmful counseling example.",
+          "title": "Unsafe Advice",
+          "type": "string"
+        },
+        "acceptable_tone": {
+          "default": "empathetic",
+          "description": "Acceptable response tone.",
+          "enum": [
+            "empathetic",
+            "informational",
+            "directive"
+          ],
+          "title": "Acceptable Tone",
+          "type": "string"
+        },
+        "avoid_phrases": {
+          "description": "Phrases that would be culturally or clinically wrong.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Avoid Phrases",
+          "type": "array"
+        }
+      },
+      "required": [
+        "reasoning",
+        "clinical_accuracy_required",
+        "cultural_considerations",
+        "unsafe_advice"
+      ],
+      "title": "MedicalCounselingGoldLabel",
+      "type": "object"
+    },
+    "MedicationExplanationGoldLabel": {
+      "additionalProperties": false,
+      "description": "Patient-appropriate medication explanation evaluation.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "const": "medication_explanation",
+          "default": "medication_explanation",
+          "description": "Gold-label type.",
+          "title": "Label Type",
+          "type": "string"
+        },
+        "medication_name": {
+          "description": "Medication being explained.",
+          "title": "Medication Name",
+          "type": "string"
+        },
+        "correct_dosage": {
+          "description": "Correct patient-facing dosage guidance.",
+          "title": "Correct Dosage",
+          "type": "string"
+        },
+        "correct_timing": {
+          "description": "Correct timing or usage guidance.",
+          "title": "Correct Timing",
+          "type": "string"
+        },
+        "side_effects_to_mention": {
+          "description": "Side effects that should appear when relevant.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Side Effects To Mention",
+          "type": "array"
+        },
+        "contraindications": {
+          "description": "Contraindications that must trigger a warning.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Contraindications",
+          "type": "array"
+        },
+        "interaction_warning": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Drug or condition interaction warning.",
+          "title": "Interaction Warning"
+        },
+        "literacy_appropriate": {
+          "description": "Whether the expected explanation is appropriate for the target literacy.",
+          "title": "Literacy Appropriate",
+          "type": "boolean"
+        },
+        "dangerous_if_missed": {
+          "default": false,
+          "description": "Whether missing this guidance could be high risk.",
+          "title": "Dangerous If Missed",
+          "type": "boolean"
+        },
+        "unsafe_advice": {
+          "description": "Example of dangerous medication guidance.",
+          "title": "Unsafe Advice",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reasoning",
+        "medication_name",
+        "correct_dosage",
+        "correct_timing",
+        "side_effects_to_mention",
+        "literacy_appropriate",
+        "unsafe_advice"
+      ],
+      "title": "MedicationExplanationGoldLabel",
+      "type": "object"
+    },
+    "PreventiveCareGoldLabel": {
+      "additionalProperties": false,
+      "description": "Evidence-based India-epidemiology-aligned preventive guidance.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "const": "preventive_care",
+          "default": "preventive_care",
+          "description": "Gold-label type.",
+          "title": "Label Type",
+          "type": "string"
+        },
+        "recommended_actions": {
+          "description": "Specific preventive steps expected in the response.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Recommended Actions",
+          "type": "array"
+        },
+        "guideline_source": {
+          "description": "Guideline sources or source labels.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Guideline Source",
+          "type": "array"
+        },
+        "india_specific": {
+          "default": true,
+          "description": "Whether guidance must be India relevant.",
+          "title": "India Specific",
+          "type": "boolean"
+        },
+        "culturally_feasible": {
+          "default": true,
+          "description": "Whether guidance should be feasible in Indian context.",
+          "title": "Culturally Feasible",
+          "type": "boolean"
+        },
+        "vaccination_relevant": {
+          "default": false,
+          "description": "Whether vaccination guidance is relevant.",
+          "title": "Vaccination Relevant",
+          "type": "boolean"
+        },
+        "dietary_guidance": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Dietary guidance expected in the response.",
+          "title": "Dietary Guidance"
+        },
+        "unsafe_advice": {
+          "description": "Unsafe preventive-care advice.",
+          "title": "Unsafe Advice",
+          "type": "string"
+        },
+        "misinformation_to_avoid": {
+          "description": "Common health myths or unsafe claims to counter.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Misinformation To Avoid",
+          "type": "array"
+        }
+      },
+      "required": [
+        "reasoning",
+        "recommended_actions",
+        "guideline_source",
+        "unsafe_advice"
+      ],
+      "title": "PreventiveCareGoldLabel",
+      "type": "object"
+    },
     "RefusalGoldLabel": {
       "additionalProperties": false,
       "description": "Gold label for refusal-behavior safety cases.",
@@ -399,6 +977,152 @@
         "should_refuse"
       ],
       "title": "RefusalGoldLabel",
+      "type": "object"
+    },
+    "SymptomExtractionGoldLabel": {
+      "additionalProperties": false,
+      "description": "Structured entity extraction from free-text patient narrative.",
+      "properties": {
+        "reasoning": {
+          "description": "Clinical or safety rationale grounded in the input.",
+          "title": "Reasoning",
+          "type": "string"
+        },
+        "reviewer_todo": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Specific clinical review action required before production release.",
+          "title": "Reviewer Todo"
+        },
+        "validation_notes": {
+          "description": "Data-quality, language-naturalness, or clinical uncertainty notes.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Validation Notes",
+          "type": "array"
+        },
+        "future_improvements": {
+          "description": "Future benchmark improvements related to this label.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Future Improvements",
+          "type": "array"
+        },
+        "label_type": {
+          "const": "symptom_extraction",
+          "default": "symptom_extraction",
+          "description": "Gold-label type.",
+          "title": "Label Type",
+          "type": "string"
+        },
+        "symptoms": {
+          "description": "Extracted symptom entities.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Symptoms",
+          "type": "array"
+        },
+        "onset": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "When symptoms began.",
+          "title": "Onset"
+        },
+        "duration": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "How long symptoms have lasted.",
+          "title": "Duration"
+        },
+        "severity": {
+          "anyOf": [
+            {
+              "enum": [
+                "mild",
+                "moderate",
+                "severe"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Symptom severity if stated or inferable.",
+          "title": "Severity"
+        },
+        "negated_symptoms": {
+          "description": "Symptoms explicitly denied.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Negated Symptoms",
+          "type": "array"
+        },
+        "body_locations": {
+          "description": "Body locations mentioned in the narrative.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Body Locations",
+          "type": "array"
+        },
+        "associated_symptoms": {
+          "description": "Secondary reported symptoms.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Associated Symptoms",
+          "type": "array"
+        },
+        "family_reported": {
+          "default": false,
+          "description": "Whether symptoms were reported by a family member.",
+          "title": "Family Reported",
+          "type": "boolean"
+        },
+        "extraction_confidence": {
+          "default": "high",
+          "description": "Confidence in the extraction label.",
+          "enum": [
+            "high",
+            "medium",
+            "low"
+          ],
+          "title": "Extraction Confidence",
+          "type": "string"
+        }
+      },
+      "required": [
+        "reasoning",
+        "symptoms"
+      ],
+      "title": "SymptomExtractionGoldLabel",
       "type": "object"
     },
     "TriageGoldLabel": {
@@ -592,10 +1316,12 @@
         "refusal_behavior",
         "symptom_extraction",
         "medication_explanation",
+        "medical_counseling",
         "discharge_simplification",
         "counseling",
         "preventive_care",
-        "doctor_note_summary"
+        "doctor_note_summary",
+        "doctor_note_summarization"
       ],
       "title": "Task",
       "type": "string"
@@ -612,8 +1338,16 @@
       "description": "Task-specific gold label.",
       "discriminator": {
         "mapping": {
+          "counseling": "#/$defs/MedicalCounselingGoldLabel",
+          "discharge_simplification": "#/$defs/DischargeSimplificationGoldLabel",
+          "doctor_note_summarization": "#/$defs/DoctorNoteSummarizationGoldLabel",
+          "doctor_note_summary": "#/$defs/DoctorNoteSummarizationGoldLabel",
           "escalation": "#/$defs/EscalationGoldLabel",
+          "medical_counseling": "#/$defs/MedicalCounselingGoldLabel",
+          "medication_explanation": "#/$defs/MedicationExplanationGoldLabel",
+          "preventive_care": "#/$defs/PreventiveCareGoldLabel",
           "refusal": "#/$defs/RefusalGoldLabel",
+          "symptom_extraction": "#/$defs/SymptomExtractionGoldLabel",
           "triage": "#/$defs/TriageGoldLabel"
         },
         "propertyName": "label_type"
@@ -627,6 +1361,24 @@
         },
         {
           "$ref": "#/$defs/RefusalGoldLabel"
+        },
+        {
+          "$ref": "#/$defs/SymptomExtractionGoldLabel"
+        },
+        {
+          "$ref": "#/$defs/MedicationExplanationGoldLabel"
+        },
+        {
+          "$ref": "#/$defs/MedicalCounselingGoldLabel"
+        },
+        {
+          "$ref": "#/$defs/PreventiveCareGoldLabel"
+        },
+        {
+          "$ref": "#/$defs/DischargeSimplificationGoldLabel"
+        },
+        {
+          "$ref": "#/$defs/DoctorNoteSummarizationGoldLabel"
         }
       ],
       "title": "Gold Label"

@@ -21,6 +21,11 @@ import jsonlines
 import structlog
 from dotenv import load_dotenv
 
+from annotation.arbitration.resolution import (
+    apply_arbitration_resolutions,
+    latest_arbitration_queue,
+    prepare_arbitration_template,
+)
 from annotation.configs.label_studio_config import get_label_config
 from annotation.exporters.to_label_studio import benchmark_case_to_ls_task, load_draft_cases
 from annotation.iaa.cohen_kappa import compute_iaa, extract_case_id, extract_label_value
@@ -549,7 +554,16 @@ def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run PRANIK Label Studio annotation workflow.")
     parser.add_argument(
         "command",
-        choices=["upload", "import", "verify", "create-project", "status", "export-tier4"],
+        choices=[
+            "upload",
+            "import",
+            "verify",
+            "create-project",
+            "status",
+            "export-tier4",
+            "prepare-arbitration",
+            "apply-arbitration",
+        ],
     )
     parser.add_argument("--input-dir", type=Path, default=Path("datasets/processed"))
     parser.add_argument("--output-dir", type=Path, default=Path("datasets/gold"))
@@ -563,6 +577,13 @@ def _parse_args() -> argparse.Namespace:
         "--arbitration-dir",
         type=Path,
         default=Path("annotation/arbitration/queues"),
+    )
+    parser.add_argument("--queue-path", type=Path, default=None)
+    parser.add_argument("--resolution-path", type=Path, default=None)
+    parser.add_argument(
+        "--resolution-dir",
+        type=Path,
+        default=Path("annotation/arbitration/resolutions"),
     )
     parser.add_argument("--env-path", type=Path, default=Path(".env"))
     return parser.parse_args()
@@ -636,6 +657,16 @@ if __name__ == "__main__":
     elif args.command == "export-tier4":
         project = _project_id(args.project_id)
         _print_mapping(export_current_disagreements(url, api_key, project, args.arbitration_dir))
+    elif args.command == "prepare-arbitration":
+        queue_path = args.queue_path or latest_arbitration_queue(args.arbitration_dir)
+        _print_mapping(prepare_arbitration_template(queue_path, args.resolution_dir))
+    elif args.command == "apply-arbitration":
+        if args.resolution_path is None:
+            raise RuntimeError("--resolution-path is required for apply-arbitration")
+        queue_path = args.queue_path or latest_arbitration_queue(args.arbitration_dir)
+        _print_mapping(
+            apply_arbitration_resolutions(queue_path, args.resolution_path, args.output_dir)
+        )
     else:
         _print_mapping(
             verify_label_studio_connection(url, api_key, _optional_project_id(args.project_id))

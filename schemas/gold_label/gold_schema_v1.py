@@ -494,7 +494,7 @@ class AnnotationMetadata(BaseModel):
     """Annotation workflow metadata.
 
     Attributes:
-        annotator_tier: Annotation tier from 1 to 3.
+        annotator_tier: Annotation tier from 1 to 4.
         iaa_score: Inter-annotator agreement score when available.
         validation_status: Draft, reviewed, or approved status.
         clinical_reviewer_required: Whether clinician review is required.
@@ -503,7 +503,7 @@ class AnnotationMetadata(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
-    annotator_tier: int = Field(..., ge=1, le=3, description="Annotation tier from 1 to 3.")
+    annotator_tier: int = Field(..., ge=1, le=4, description="Annotation tier from 1 to 4.")
     iaa_score: float | None = Field(
         default=None,
         ge=0.0,

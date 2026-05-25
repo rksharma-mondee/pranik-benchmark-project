@@ -35,6 +35,8 @@ synthetic_generation/outputs/**
 evaluation/reports/**
 evaluation/scorecards/**
 evaluation/results/**
+annotation/arbitration/queues/*.jsonl
+annotation/arbitration/resolutions/*.csv
 observability/logs/**
 observability/wandb/**
 observability/mlflow/**
