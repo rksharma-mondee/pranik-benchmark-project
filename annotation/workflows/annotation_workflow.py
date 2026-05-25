@@ -157,6 +157,69 @@ def import_completed_annotations(
     return summary
 
 
+def finalize_gold_batch(
+    ls_url: str,
+    ls_api_key: str,
+    project_id: int,
+    output_dir: Path,
+) -> dict[str, Any]:
+    """Promote completed reviewer-consensus cases into the gold dataset.
+
+    This is intentionally idempotent: cases already present in gold files are
+    skipped, while cases with reviewer disagreement remain outside gold until
+    Tier 4 arbitration resolves them.
+    """
+
+    exported_tasks = _ls_export_tasks(
+        ls_url=ls_url,
+        ls_api_key=ls_api_key,
+        project_id=project_id,
+    )
+    completed = [
+        task
+        for task in exported_tasks
+        if isinstance(task.get("annotations"), list) and len(task["annotations"]) >= 2
+    ]
+    existing_case_ids = _existing_gold_case_ids(output_dir)
+    approved_tasks: list[dict[str, Any]] = []
+    skipped_existing: list[str] = []
+    skipped_disagreement: list[str] = []
+    seen_case_ids: set[str] = set()
+
+    for task in completed:
+        case_id = _case_id(task)
+        if not case_id or case_id in seen_case_ids:
+            continue
+        seen_case_ids.add(case_id)
+        if case_id in existing_case_ids:
+            skipped_existing.append(case_id)
+            continue
+        if _has_reviewer_disagreement(task):
+            skipped_disagreement.append(case_id)
+            continue
+        approved_tasks.append(task)
+
+    write_counts = {}
+    if approved_tasks:
+        write_counts = write_gold_cases(approved_tasks, output_dir, iaa_score=1.0)
+
+    summary = {
+        "project_id": project_id,
+        "exported": len(exported_tasks),
+        "completed": len(completed),
+        "finalized": len(approved_tasks),
+        "skipped_existing_gold": len(skipped_existing),
+        "skipped_disagreement": len(skipped_disagreement),
+        "pending": len(exported_tasks) - len(completed),
+        "gold_write_counts": write_counts,
+        "finalized_case_ids": [_case_id(task) for task in approved_tasks],
+        "existing_gold_case_ids": sorted(skipped_existing),
+        "disagreement_case_ids": sorted(skipped_disagreement),
+    }
+    logger.info("label_studio_gold_batch_finalized", **summary)
+    return summary
+
+
 def get_annotation_status(
     ls_url: str,
     ls_api_key: str,
@@ -472,6 +535,18 @@ def _gold_case_counts(output_dir: Path) -> dict[str, int]:
     return counts
 
 
+def _existing_gold_case_ids(output_dir: Path) -> set[str]:
+    case_ids: set[str] = set()
+    if not output_dir.exists():
+        return case_ids
+    for path in sorted(output_dir.glob("*_gold_v1.jsonl")):
+        with jsonlines.open(path, mode="r") as reader:
+            for payload in reader:
+                if isinstance(payload, dict) and isinstance(payload.get("case_id"), str):
+                    case_ids.add(payload["case_id"])
+    return case_ids
+
+
 def _arbitration_record(task: dict[str, Any], *, reason: str) -> dict[str, Any]:
     annotations = task.get("annotations")
     annotation_list = annotations if isinstance(annotations, list) else []
@@ -563,6 +638,7 @@ def _parse_args() -> argparse.Namespace:
             "export-tier4",
             "prepare-arbitration",
             "apply-arbitration",
+            "finalize-batch",
         ],
     )
     parser.add_argument("--input-dir", type=Path, default=Path("datasets/processed"))
@@ -667,6 +743,9 @@ if __name__ == "__main__":
         _print_mapping(
             apply_arbitration_resolutions(queue_path, args.resolution_path, args.output_dir)
         )
+    elif args.command == "finalize-batch":
+        project = _project_id(args.project_id)
+        _print_mapping(finalize_gold_batch(url, api_key, project, args.output_dir))
     else:
         _print_mapping(
             verify_label_studio_connection(url, api_key, _optional_project_id(args.project_id))
