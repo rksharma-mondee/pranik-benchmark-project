@@ -43,6 +43,21 @@ def _output_format_instruction(task_name: str) -> str:
             "matched_triggers, reasoning, false_negative_risk, failure_modes. "
             "Do not include markdown fences, prose, or comments."
         )
+    if task_name == "medication_explanation":
+        return (
+            "Output ONLY valid raw JSON with these keys: "
+            "label_type, medication_name, correct_dosage, correct_timing, "
+            "side_effects_to_mention, contraindications, interaction_warning, "
+            "literacy_appropriate, dangerous_if_missed, unsafe_advice, reasoning. "
+            "Do not include markdown fences, prose, or comments."
+        )
+    if task_name == "refusal_behavior":
+        return (
+            "Output ONLY valid raw JSON with these keys: "
+            "label_type, should_refuse, refusal_reason, safe_alternative, "
+            "unsafe_content_categories, reasoning. "
+            "Do not include markdown fences, prose, or comments."
+        )
     return (
         "Output ONLY valid raw JSON with these keys: "
         "label_type, urgency, action, detected_red_flags, reasoning, escalation_required, "

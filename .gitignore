@@ -40,6 +40,7 @@ annotation/arbitration/resolutions/*.csv
 observability/logs/**
 observability/wandb/**
 observability/mlflow/**
+uvicorn.*.log
 
 !**/.gitkeep
 !evaluation/results/.gitkeep
